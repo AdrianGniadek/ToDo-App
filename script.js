@@ -52,6 +52,33 @@ function apiDeleteTask(taskId) {
     )
 }
 
+function apiUpdateTask(taskId, title, description, status) {
+    return fetch(
+        apihost + '/api/tasks/' + taskId,
+        {
+            headers: { Authorization: apikey, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: title, description: description, status: status }),
+            method: 'PUT'
+        }
+    ).then(
+        function (resp) {
+            if(!resp.ok) {
+                alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
+            }
+            return resp.json();
+        }
+    );
+}
+
+function apiListOperationsForTask(taskId) {
+    return fetch(
+        apihost + '/api/tasks/' + taskId + '/operations',
+        { headers: { 'Authorization': apikey } }
+    ).then(
+        function (resp) { return resp.json(); }
+    );
+}
+
 function apiCreateOperationForTask(taskId, description) {
     return fetch(
         apihost + '/api/tasks/' + taskId + '/operations',
@@ -68,6 +95,41 @@ function apiCreateOperationForTask(taskId, description) {
             return resp.json();
         }
     );
+}
+
+function apiUpdateOperation(operationId, description, timeSpent) {
+    return fetch(
+        apihost + '/api/operations/' + operationId,
+        {
+            headers: { Authorization: apikey, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ description: description, timeSpent: timeSpent }),
+            method: 'PUT'
+        }
+    ).then(
+        function (resp) {
+            if(!resp.ok) {
+                alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
+            }
+            return resp.json();
+        }
+    );
+}
+
+function apiDeleteOperation(operationId) {
+    return fetch(
+        apihost + '/api/operations/' + operationId,
+        {
+            headers: { Authorization: apikey },
+            method: 'DELETE'
+        }
+    ).then(
+        function (resp) {
+            if(!resp.ok) {
+                alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
+            }
+            return resp.json();
+        }
+    )
 }
 
 function renderTask(taskId, title, description, status) {
@@ -99,6 +161,13 @@ function renderTask(taskId, title, description, status) {
         finishButton.className = 'btn btn-dark btn-sm js-task-open-only';
         finishButton.innerText = 'Finish';
         headerRightDiv.appendChild(finishButton);
+
+        finishButton.addEventListener('click', function() {
+            apiUpdateTask(taskId, title, description, 'closed');
+            section.querySelectorAll('.js-task-open-only').forEach(
+                function(element) { element.parentElement.removeChild(element); }
+            );
+        });
     }
 
     const deleteButton = document.createElement('button');
@@ -167,6 +236,7 @@ function renderTask(taskId, title, description, status) {
                         response.data.description,
                         response.data.timeSpent
                     );
+                    descriptionInput.value = '';
                 }
             )
         });
@@ -196,15 +266,38 @@ function renderOperation(ul, status, operationId, operationDescription, timeSpen
         add15minButton.innerText = '+15m';
         controlDiv.appendChild(add15minButton);
 
+        add15minButton.addEventListener('click', function() {
+            apiUpdateOperation(operationId, operationDescription, timeSpent + 15).then(
+                function(response) {
+                    time.innerText = formatTime(response.data.timeSpent);
+                    timeSpent = response.data.timeSpent;
+                }
+            );
+        });
+
         const add1hButton = document.createElement('button');
         add1hButton.className = 'btn btn-outline-success btn-sm mr-2';
         add1hButton.innerText = '+1h';
         controlDiv.appendChild(add1hButton);
+        add1hButton.addEventListener('click', function() {
+            apiUpdateOperation(operationId, operationDescription, timeSpent + 60).then(
+                function(response) {
+                    time.innerText = formatTime(response.data.timeSpent);
+                    timeSpent = response.data.timeSpent;
+                }
+            );
+        });
 
         const deleteButton = document.createElement('button');
         deleteButton.className = 'btn btn-outline-danger btn-sm';
         deleteButton.innerText = 'Delete';
         controlDiv.appendChild(deleteButton);
+
+        deleteButton.addEventListener('click', function() {
+            apiDeleteOperation(operationId).then(
+                function() { li.parentElement.removeChild(li); }
+            );
+        });
     }
 }
 function formatTime(timeSpent) {
