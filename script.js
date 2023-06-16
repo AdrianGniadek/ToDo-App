@@ -52,6 +52,39 @@ function renderTask(taskId, title, description, status) {
     deleteButton.className = 'btn btn-outline-danger btn-sm ml-2';
     deleteButton.innerText = 'Delete';
     headerRightDiv.appendChild(deleteButton);
+
+    const ul = document.createElement('ul');
+    ul.className = 'list-group list-group-flush';
+    section.appendChild(ul);
+
+    if (status == 'open') {
+        const addOperationDiv = document.createElement('div');
+        addOperationDiv.className = 'card-body js-task-open-only';
+        section.appendChild(addOperationDiv);
+
+        const form = document.createElement('form');
+        addOperationDiv.appendChild(form);
+
+        const inputGroup = document.createElement('div');
+        inputGroup.className = 'input-group';
+        form.appendChild(inputGroup);
+
+        const descriptionInput = document.createElement('input');
+        descriptionInput.setAttribute('type', 'text');
+        descriptionInput.setAttribute('placeholder', 'Operation description');
+        descriptionInput.setAttribute('minlength', '5');
+        descriptionInput.className = 'form-control';
+        inputGroup.appendChild(descriptionInput);
+
+        const inputGroupAppend = document.createElement('div');
+        inputGroupAppend.className = 'input-group-append';
+        inputGroup.appendChild(inputGroupAppend);
+
+        const addButton = document.createElement('button');
+        addButton.className = 'btn btn-info';
+        addButton.innerText = 'Add';
+        inputGroupAppend.appendChild(addButton);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function () {
