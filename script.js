@@ -57,16 +57,6 @@ function renderTask(taskId, title, description, status) {
     ul.className = 'list-group list-group-flush';
     section.appendChild(ul);
 
-    apiListOperationsForTask(taskId).then(
-        function(response) {
-            response.data.forEach(
-                function(operation) {
-                    renderOperation(ul, status, operation.id, operation.description, operation.timeSpent);
-                }
-            );
-        }
-    );
-
     if (status == 'open') {
         const addOperationDiv = document.createElement('div');
         addOperationDiv.className = 'card-body js-task-open-only';
@@ -96,7 +86,6 @@ function renderTask(taskId, title, description, status) {
         inputGroupAppend.appendChild(addButton);
     }
 }
-
 function renderOperation(ul, status, operationId, operationDescription, timeSpent) {
     const li = document.createElement('li');
     li.className = 'list-group-item d-flex justify-content-between align-items-center';
@@ -158,6 +147,31 @@ function apiListOperationsForTask(taskId) {
     );
 }
 
+function apiCreateTask(title, description) {
+    return fetch(
+        apihost + '/api/tasks',
+        {
+            headers: { Authorization: apikey, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: title, description: description, status: 'open' }),
+            method: 'POST'
+        }
+    ).then(
+        function (resp) {
+            if(!resp.ok) {
+                alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
+            }
+            return resp.json();
+        }
+    );
+}
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelector('.js-task-adding-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        apiCreateTask(event.target.elements.title.value, event.target.elements.description.value).then(
+            function(response) { renderTask(response.data.id, response.data.title, response.data.description, response.data.status); }
+        )
+    });
+});
 
 document.addEventListener('DOMContentLoaded', function () {
     apiListTasks().then(
