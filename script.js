@@ -17,6 +17,59 @@ function apiListTasks() {
     )
 }
 
+function apiCreateTask(title, description) {
+    return fetch(
+        apihost + '/api/tasks',
+        {
+            headers: { Authorization: apikey, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: title, description: description, status: 'open' }),
+            method: 'POST'
+        }
+    ).then(
+        function (resp) {
+            if(!resp.ok) {
+                alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
+            }
+            return resp.json();
+        }
+    );
+}
+
+function apiDeleteTask(taskId) {
+    return fetch(
+        apihost + '/api/tasks/' + taskId,
+        {
+            headers: { Authorization: apikey },
+            method: 'DELETE'
+        }
+    ).then(
+        function (resp) {
+            if(!resp.ok) {
+                alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
+            }
+            return resp.json();
+        }
+    )
+}
+
+function apiCreateOperationForTask(taskId, description) {
+    return fetch(
+        apihost + '/api/tasks/' + taskId + '/operations',
+        {
+            headers: { Authorization: apikey, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ description: description, timeSpent: 0 }),
+            method: 'POST'
+        }
+    ).then(
+        function (resp) {
+            if(!resp.ok) {
+                alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
+            }
+            return resp.json();
+        }
+    );
+}
+
 function renderTask(taskId, title, description, status) {
     const section = document.createElement('section');
     section.className = 'card mt-5 shadow-sm';
@@ -102,6 +155,21 @@ function renderTask(taskId, title, description, status) {
         addButton.className = 'btn btn-info';
         addButton.innerText = 'Add';
         inputGroupAppend.appendChild(addButton);
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            apiCreateOperationForTask(taskId, descriptionInput.value).then(
+                function(response) {
+                    renderOperation(
+                        ul,
+                        status,
+                        response.data.id,
+                        response.data.description,
+                        response.data.timeSpent
+                    );
+                }
+            )
+        });
     }
 }
 function renderOperation(ul, status, operationId, operationDescription, timeSpent) {
@@ -147,41 +215,6 @@ function formatTime(timeSpent) {
     } else {
         return minutes + 'm';
     }
-}
-
-function apiCreateTask(title, description) {
-    return fetch(
-        apihost + '/api/tasks',
-        {
-            headers: { Authorization: apikey, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title: title, description: description, status: 'open' }),
-            method: 'POST'
-        }
-    ).then(
-        function (resp) {
-            if(!resp.ok) {
-                alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
-            }
-            return resp.json();
-        }
-    );
-}
-
-function apiDeleteTask(taskId) {
-    return fetch(
-        apihost + '/api/tasks/' + taskId,
-        {
-            headers: { Authorization: apikey },
-            method: 'DELETE'
-        }
-    ).then(
-        function (resp) {
-            if(!resp.ok) {
-                alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
-            }
-            return resp.json();
-        }
-    )
 }
 
 document.addEventListener('DOMContentLoaded', function() {
