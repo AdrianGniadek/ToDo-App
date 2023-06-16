@@ -53,9 +53,27 @@ function renderTask(taskId, title, description, status) {
     deleteButton.innerText = 'Delete';
     headerRightDiv.appendChild(deleteButton);
 
+    deleteButton.addEventListener('click', function() {
+        apiDeleteTask(taskId).then(
+            function() {
+                section.parentElement.removeChild(section);
+            }
+        );
+    });
+
     const ul = document.createElement('ul');
     ul.className = 'list-group list-group-flush';
     section.appendChild(ul);
+
+    apiListOperationsForTask(taskId).then(
+        function(response) {
+            response.data.forEach(
+                function(operation) {
+                    renderOperation(ul, status, operation.id, operation.description, operation.timeSpent);
+                }
+            );
+        }
+    );
 
     if (status == 'open') {
         const addOperationDiv = document.createElement('div');
@@ -131,22 +149,6 @@ function formatTime(timeSpent) {
     }
 }
 
-
-
-function apiListOperationsForTask(taskId) {
-    return fetch(
-        apihost + '/api/tasks/' + taskId + '/operations',
-        { headers: { 'Authorization': apikey } }
-    ).then(
-        function (resp) {
-            if(!resp.ok) {
-                alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
-            }
-            return resp.json();
-        }
-    );
-}
-
 function apiCreateTask(title, description) {
     return fetch(
         apihost + '/api/tasks',
@@ -164,6 +166,24 @@ function apiCreateTask(title, description) {
         }
     );
 }
+
+function apiDeleteTask(taskId) {
+    return fetch(
+        apihost + '/api/tasks/' + taskId,
+        {
+            headers: { Authorization: apikey },
+            method: 'DELETE'
+        }
+    ).then(
+        function (resp) {
+            if(!resp.ok) {
+                alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
+            }
+            return resp.json();
+        }
+    )
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('.js-task-adding-form').addEventListener('submit', function(event) {
         event.preventDefault();
